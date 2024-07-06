@@ -13,6 +13,10 @@ from openai import OpenAI
 import json
 import requests
 
+# Google encoding symbol codes
+GOOGLE_SYMBOL_CODES = {
+    '&#39;':"'"
+}
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -191,8 +195,13 @@ def translate():
             return jsonify({'translation': text})
         
     if engine == 'google_translate':
+
         result = translate_client.translate(text, source_language=from_lang, target_language=to_lang)
-        return jsonify({'translation': result['translatedText']})
+        return_val = result['translatedText']
+        # replacing HTML entities
+        for key in GOOGLE_SYMBOL_CODES.keys():
+            return_val = return_val.replace(key, GOOGLE_SYMBOL_CODES[key])
+        return jsonify({'translation': return_val})
 
     if engine == 'yandex_translate':
         body = {
